@@ -15,9 +15,14 @@ class WrappersTestCase(unittest.TestCase):
 
 
   def setUp(self):
-    self.oil = ts_io.read_ts('oil', 'fpp', False)
-    self.aus = ts_io.read_ts('austourists', 'fpp', False)
-    self.gold = ts_io.read_ts('gold', as_pandas=False)
+
+    importr('fpp2')
+    # self.oil = robjects.r('oil')
+    # self.aus = robjects.r('austourists')
+    # self.gold = robjects.r('gold')
+    self.oil = ts_io.read_ts('oil', 'fpp2', as_pandas=True)
+    self.aus = ts_io.read_ts('austourists', 'fpp2', as_pandas=True)
+    self.gold = ts_io.read_ts('gold', 'fpp2', as_pandas=True)
     self.tsn = converters.ts([1, 2, NA, 4])
     self.tss = converters.ts([1, 2, 3, 1, 2, 3, 1, NA, 3], frequency=3)
     self.vss = [1,2,3,4] * 4
@@ -66,10 +71,10 @@ class WrappersTestCase(unittest.TestCase):
     self.assertAlmostEqual(inv_bc[0], self.oil[0], places=4)
 
   def test_tsclean(self):
-    gold_py = converters.ts_as_series(self.gold)
+    gold_py = converters.ts_as_series(converters.ts(self.gold))
     clean_py = wrappers.tsclean(gold_py)
     self.assertFalse(clean_py.isnull().any())
-    clean_r = self.fc.tsclean(self.gold)
+    clean_r = self.fc.tsclean(converters.ts(self.gold))
     self.assertAlmostEqual(clean_py[770], clean_r.rx(770), places=3)
 
   def test_findfrequency(self):

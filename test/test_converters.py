@@ -9,9 +9,12 @@ import numpy
 class ConvertersTestCase(unittest.TestCase):
 
   def setUp(self):
-    importr('fpp')
-    self.oil_ts = robjects.r('oil')
-    self.aus_ts = robjects.r('austourists')
+    importr('fpp2')
+    #self.oil_ts = robjects.r('oil')
+    #self.aus_ts = robjects.r('austourists')
+
+    self.oil_ts = ts_io.read_ts('oil', 'fpp2', as_pandas=True)
+    self.aus_ts = ts_io.read_ts('austourists', 'fpp2', as_pandas=True)
     self.fc_oil = wrappers.meanf(self.oil_ts)
     self.fc_aus = wrappers.ets(self.aus_ts)
     self.oil = ts_io.read_series('data/oil.csv')
@@ -133,7 +136,7 @@ class ConvertersTestCase(unittest.TestCase):
 
 
   def test_get_index(self):
-    oil_idx = converters._get_index(self.oil_ts)
+    oil_idx = converters._get_index(converters.ts(self.oil_ts))
     self.assertEqual(oil_idx, range(1965, 2011))
     aus_idx = converters._get_index(self.aus_ts)
     self.assertEqual(len(aus_idx), 2)
@@ -143,11 +146,11 @@ class ConvertersTestCase(unittest.TestCase):
 
 
   def test_ts_as_series(self):
-    oil = converters.ts_as_series(self.oil_ts)
+    oil = self.oil_ts
     self.assertEqual(list(oil.index), range(1965, 2011))
     self.assertAlmostEqual(oil[1965], 111.0091, places=3)
     self.assertAlmostEqual(oil[2010], 467.7724, places=3)
-    aus = converters.ts_as_series(self.aus_ts)
+    aus = self.aus_ts
     self.assertAlmostEqual(aus[(1999, 1)], 30.0525, places=3)
     self.assertAlmostEqual(aus[(2010, 4)], 47.9137, places=3)
     self.assertEqual(aus[2010].shape, (4, ))
@@ -218,7 +221,7 @@ class ConvertersTestCase(unittest.TestCase):
 
 
   def test_prediction_intervals(self):
-    pred = converters.prediction_intervals(self.fc_oil)
+    pred = converters.prediction_intervals(converters.ts(self.fc_oil))
     self.assertEqual(pred.shape, (10, 5))
     self.assertEqual(list(pred.index), range(2011, 2021))
     self.assertEqual(list(pred.columns), [u'point_fc', u'lower80', 
@@ -241,7 +244,7 @@ class ConvertersTestCase(unittest.TestCase):
 
 
   def test_accuracy(self):
-    acc1 = wrappers.accuracy(self.fc_oil)
+    acc1 = wrappers.accuracy(converters.ts(self.fc_oil))
     acdf1 = converters.accuracy(acc1)
     acdf1.shape == (7, 1)
     list(acdf1.columns) == ['Train']

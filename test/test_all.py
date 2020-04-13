@@ -4,16 +4,18 @@ from rforecast import converters
 from rforecast import ts_io
 from rpy2 import robjects
 from rpy2.robjects.packages import importr
+import rpy2.robjects.numpy2ri
+rpy2.robjects.numpy2ri.activate()
 
 
 class EndToEndTestCase(unittest.TestCase):
 
   def setUp(self):
-    self.oil_r  = ts_io.read_ts('oil', 'fpp', as_pandas=False)
+    self.oil_r  = ts_io.read_ts('oil', 'fpp2', as_pandas=False)
     self.oil_py = converters.ts_as_series(self.oil_r)
-    self.aus_r = ts_io.read_ts('austourists', 'fpp', as_pandas=False)
+    self.aus_r = ts_io.read_ts('austourists', 'fpp2', as_pandas=False)
     self.aus_py = converters.ts_as_series(self.aus_r)
-    self.austa_r = ts_io.read_ts('austa', 'fpp', as_pandas=False)
+    self.austa_r = ts_io.read_ts('austa', 'fpp2', as_pandas=False)
     self.austa_py = converters.ts_as_series(self.austa_r)
     self.fc = importr('forecast')
 
@@ -129,6 +131,7 @@ class EndToEndTestCase(unittest.TestCase):
     self.assertRaises(ValueError, wrappers.holt, self.austa_py, beta=1.0)
 
   def test_hw(self):
+    print(self.aus_py)
     fc_py = wrappers.hw(self.aus_py)
     fc_r  = self.fc.hw(self.aus_r, initial='simple')
     self._check_points(fc_py, fc_r)
